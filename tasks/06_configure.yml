@@ -16,6 +16,7 @@
     - '"has already been taken" not in new_user_log.stderr and "nodedown" not in new_user_log.stderr'
 
 - name: Get pleroma folder name
+  become: true
   ansible.builtin.shell:
     cmd: ls | grep pleroma-*
   args:

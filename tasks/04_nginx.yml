@@ -1,0 +1,34 @@
+---
+
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+
+- name: Copy pleroma config to remote machine
+  become: true
+  ansible.builtin.template:
+    src: templates/pleroma.nginx.j2
+    dest: /etc/nginx/sites-available/pleroma
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+    mode: '0644'
+
+- name: Ensure nginx default config is absent
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Enable Pleroma Nginx configuration
+  become: true
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/pleroma
+    dest: /etc/nginx/sites-enabled/pleroma
+    state: link
+
+- name: Restart nginx
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: restarted

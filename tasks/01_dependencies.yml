@@ -1,0 +1,39 @@
+---
+
+- name: Create Pleroma user
+  become: true
+  ansible.builtin.user:
+    name: "{{ pleroma_user }}"
+    home: "{{ pleroma_base_path }}"
+    shell: /bin/false
+    system: true
+
+- name: Ensure folders exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+  with_items:
+    - "{{ pleroma_base_path }}"
+    - "{{ pleroma_uploads_path }}"
+    - "{{ pleroma_static_path }}"
+    - /etc/pleroma
+
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install required packages
+  become: true
+  ansible.builtin.apt:
+    name: "{{ pleroma_dependencies }}"
+
+- name: Install libssl1.1
+  become: true
+  ansible.builtin.apt:
+    deb: "{{ pleroma_libssl_deb_url }}"

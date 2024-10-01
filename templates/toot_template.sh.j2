@@ -1,0 +1,3 @@
+#!/bin/bash
+
+{{ pleroma_base_path }}/masto_bot.py --user="{{ item.user }}" {% if 'media' in item %}--media="{{ item.media }}"{% endif %} "{{ item.text }}" 

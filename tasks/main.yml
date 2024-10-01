@@ -1,0 +1,26 @@
+---
+
+- name: '00 reset'
+  ansible.builtin.include_tasks: 00_reset.yml
+  when: pleroma_force_install | default(false)
+
+- name: '01 dependencies'
+  ansible.builtin.include_tasks: 01_dependencies.yml
+
+- name: '02 install'
+  ansible.builtin.include_tasks: 02_install.yml
+
+- name: '03 database'
+  ansible.builtin.include_tasks: 03_database.yml
+
+- name: '04 nginx'
+  ansible.builtin.include_tasks: 04_nginx.yml
+
+- name: '05 systemd'
+  ansible.builtin.include_tasks: 05_systemd.yml
+
+- name: '06 configure'
+  ansible.builtin.include_tasks: 06_configure.yml
+
+- name: '07 mastobot'
+  ansible.builtin.include_tasks: 07_mastobot.yml

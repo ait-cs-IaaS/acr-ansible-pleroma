@@ -1,0 +1,16 @@
+---
+- name: Create toots directory
+  become: true
+  file:
+    path: "{{ mastodon_deploy_dir }}/toots"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Deploy docker compose
+  become: true
+  template:
+    dest: "{{ mastodon_deploy_dir }}/toots/{{ item.toot_id }}"
+    src: toot_template.sh.j2
+    mode: 0755
+  with_items: "{{ mastodon_prepared_toots }}"

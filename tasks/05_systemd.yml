@@ -1,0 +1,17 @@
+---
+
+- name: Copy pleroma service template
+  become: true
+  ansible.builtin.template:
+    src: templates/pleroma.service.j2
+    dest: /etc/systemd/system/pleroma.service
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+    mode: '0644'
+
+- name: Enable and start Pleroma service
+  become: true
+  ansible.builtin.systemd:
+    name: pleroma
+    enabled: true
+    state: started

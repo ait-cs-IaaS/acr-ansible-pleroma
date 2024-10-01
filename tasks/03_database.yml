@@ -1,0 +1,34 @@
+
+
+- name: Install postgresql
+  become: true
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+
+- name: Restart PostgreSQL service
+  become: true
+  ansible.builtin.service:
+    name: postgresql
+    state: restarted
+
+- name: Execute the setup_db.psql script as postgres user
+  become: true
+  become_user: postgres
+  ansible.builtin.shell:
+    cmd: psql -f /tmp/setup_db.psql
+  when: 
+    - '"The task would have overwritten the following files" not in setup_log.stderr' 
+
+- name: Create the database schema 
+  become: true
+  become_user: "{{ pleroma_user }}"
+  ansible.builtin.shell:
+    cmd: "./bin/pleroma_ctl migrate"
+  args:
+    chdir: "{{ pleroma_base_path }}"
+  register: migrate_log
+  failed_when: 
+    - migrate_log.rc != 0
+    - '"configure Ecto to use another table" not in migrate_log.stderr'

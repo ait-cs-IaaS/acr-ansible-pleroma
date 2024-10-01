@@ -1,0 +1,123 @@
+---
+
+pleroma_force_install: false
+
+pleroma_user: pleroma
+pleroma_base_path: /opt/pleroma
+pleroma_static_path: /var/lib/pleroma/static
+pleroma_uploads_path: /var/lib/pleroma/uploads
+
+pleroma_libssl_deb_url: http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
+
+pleroma_dependencies:
+  - build-essential
+  - cmake
+  - libmagic-dev
+  - elixir
+  - erlang-dev
+  - erlang-nox
+  - imagemagick
+  - ffmpeg
+  - libimage-exiftool-perl
+  - curl
+  - unzip
+  - libncurses5
+  - libvips-dev
+
+pleroma_db_user: pleroma
+pleroma_db_name: pleroma
+pleroma_db_host: localhost
+pleroma_db_password: 4eXtik89KlzeqkU
+
+pleroma_admin_email: admin@cyberrange.at
+pleroma_admin_user: admin
+pleroma_admin_password: pASDpo0asd729
+
+pleroma_domain_name: mastodon.cyberrange.at
+pleroma_notify_email: "{{ pleroma_admin_email }}"
+pleroma_secret_key: s3cr37KeyB45e
+
+pleroma_setup_responses:
+  # What domain will your instance use? (e.g pleroma.soykaf.com)
+  - "{{ pleroma_domain_name }}"
+  # What is the name of your instance? (e.g. The Corndog Emporium)
+  - "{{ pleroma_domain_name }}"
+  # What is your admin email address?
+  - "{{ pleroma_admin_email }}"
+  # What email address do you want to use for sending email notifications? 
+  - "{{ pleroma_admin_email }}"
+  # Do you want search engines to index your site? (y/n)
+  - "n"
+  # Do you want to store the configuration in the database (allows controlling it from admin-fe)? (y/n)
+  - "n"
+  # What is the hostname of your database?
+  - "localhost"
+  # What is the name of your database?
+  - "{{ pleroma_db_name }}"
+  # What is the user used to connect to your database?
+  - "{{ pleroma_db_user }}"
+  # What is the password used to connect to your database?
+  - "{{ pleroma_secret_key }}"
+  # Would you like to use RUM indices?
+  - "n"
+  # What port will the app listen to (leave it if you are using the default setup with nginx)?
+  - "4000"
+  # What ip will the app listen to (leave it if you are using the default setup with nginx)? 
+  - "127.0.0.1"
+  # What directory should media uploads go in (when using the local uploader)?
+  - "{{ pleroma_uploads_path }}"
+  # What directory should custom public files be read from (custom emojis, frontend bundle overrides, robots.txt, etc.)? 
+  - "{{ pleroma_static_path }}"
+  # Do you want to strip location (GPS) data from uploaded images? This requires exiftool, it was detected as installed.
+  - "n"
+  # Do you want to read data from uploaded files so clients can use it to prefill fields like image description? This requires exiftool, it was detected as installed.
+  - "n"
+  # Do you want to anonymize the filenames of uploads?
+  - "n"
+  # Do you want to deduplicate uploaded files?
+  - "n"
+
+
+pleroma_users:
+  - login: "cert"
+    follow: ["user1", "user2"]
+    email: "cert@fullscope.at"
+    password: "certpassword"
+    initial_toots:
+      - text: "Cyber Cyber Cyber"
+      - text: "Hello Masto"
+      - text: "My cat"
+        media: "katze.jpg"
+    account:
+      bio: "CERT Protecting the Cyber"
+      display_name: "Fullscope CERT"
+      header: "eso1907a.jpg"
+      avatar: "cs.jpg"
+  - login: "user1"
+    follow: ["cert"]
+    password: "password"
+    email: "user1@test.com"
+    initial_toots:
+      - text: "I toot therefore I am"
+  - login: "hackerman"
+    follow: ["cert"]
+    email: "hacker@cyberrange.at"
+    account:
+      bio: "Hacking Time & Space"
+      display_name: "HACKERMAN"
+      avatar: "hackerman.gif"
+    initial_toots:
+      - text: "Remember: With great processing power comes great responsibility"
+      - text: "Got into Hardcore hacking mode yesterday"
+  - login: "user3"
+    email: "user3@cyberrange.at"
+
+pleroma_prepared_toots:
+  - toot_id: "toot_whenever"
+    user: "cert"
+    text: "I toot whenever I want"
+  - toot_id: "start_1005"
+    user: "hackerman"
+    text: "Space is awesome"
+    media: "eso1907a.jpg"
+

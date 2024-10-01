@@ -1,0 +1,88 @@
+---
+
+- name: Create first Pleroma admin user
+  become: true
+  become_user: "{{ pleroma_user }}"
+  ansible.builtin.shell: 
+    cmd: ./bin/pleroma_ctl user new {{ pleroma_admin_user }} {{ pleroma_admin_email }} --admin --password {{ pleroma_admin_password }} --assume-yes
+  args:
+    chdir: "{{ pleroma_base_path }}"
+  register: new_user_log
+  failed_when:
+    - new_user_log.rc != 0
+    - '"has already been taken" not in new_user_log.stderr'
+
+- name: Get pleroma folder name
+  ansible.builtin.shell:
+    cmd: ls | grep pleroma-*
+  args:
+    chdir: "{{ pleroma_base_path }}/lib/"
+  register: pleroma_folder_name
+
+- name: Copy theme to server
+  become: true
+  ansible.builtin.copy:
+    src: files/y-theme.json
+    dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/themes/pleroma-dark.json"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+
+- name: Copy logo to server
+  become: true
+  ansible.builtin.copy:
+    src: files/logo.svg
+    dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/logo.svg"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+
+- name: Copy avi to server
+  become: true
+  ansible.builtin.copy:
+    src: files/y.png
+    dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/images/avi.png"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+
+- name: Copy favicon to server
+  become: true
+  ansible.builtin.copy:
+    src: files/{{ item.src }}
+    dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/{{ item.dest }}"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+  with_items:
+    - src: favicon.png
+      dest: static/adminfe/favicon.ico
+    - src: favicon.ico
+      dest: static/favicon.png
+
+- name: Remove banner file
+  become: true
+  ansible.builtin.file:
+    path: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/images/banner.png"
+    state: absent
+
+- name: Copy config to server
+  become: true
+  ansible.builtin.copy:
+    src: files/config.json
+    dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/config.json"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+  notify: Restart Pleroma
+
+- name: Create toots directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ pleroma_base_path }}/toots"
+    state: directory
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+
+- name: Deploy toot template
+  become: true
+  ansible.builtin.template:
+    dest: "{{ pleroma_base_path }}/toots/{{ item.toot_id }}"
+    src: toot_template.sh.j2
+    mode: 0755
+  with_items: "{{ pleroma_prepared_toots }}"

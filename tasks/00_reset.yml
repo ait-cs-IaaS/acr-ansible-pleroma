@@ -1,0 +1,20 @@
+---
+
+- name: Remove postgresql
+  become: true
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+    state: absent
+
+- name: Ensure folders are removed
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+  with_items:
+    - /etc/pleroma
+    - /opt/pleroma
+    - /var/lib/pleroma

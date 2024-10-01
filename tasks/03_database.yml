@@ -19,7 +19,11 @@
   ansible.builtin.shell:
     cmd: psql -f /tmp/setup_db.psql
   when: 
-    - '"The task would have overwritten the following files" not in setup_log.stderr' 
+    - '"The task would have overwritten the following files" not in setup_log.stderr'
+
+- name: Wait 5 seconds for database
+  ansible.builtin.wait_for:
+    timeout: 5
 
 - name: Create the database schema 
   become: true

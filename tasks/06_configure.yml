@@ -8,9 +8,12 @@
   args:
     chdir: "{{ pleroma_base_path }}"
   register: new_user_log
+  retries: 10
+  delay: 10
+  until: '"nodedown" not in new_user_log.stderr'
   failed_when:
     - new_user_log.rc != 0
-    - '"has already been taken" not in new_user_log.stderr'
+    - '"has already been taken" not in new_user_log.stderr and "nodedown" not in new_user_log.stderr'
 
 - name: Get pleroma folder name
   ansible.builtin.shell:
@@ -32,6 +35,20 @@
   ansible.builtin.copy:
     src: files/logo.svg
     dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/logo.svg"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+
+- name: Remove images
+  become: true
+  ansible.builtin.file:
+    path: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/images/"
+    state: absent
+
+- name: Create images folder
+  become: true
+  ansible.builtin.file:
+    path: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/images/"
+    state: directory
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
 

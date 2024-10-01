@@ -26,7 +26,7 @@
     chdir: "{{ pleroma_base_path }}"
   register: setup_log
 
-- name: Disable captcha
+- name: Additional config
   become: true
   ansible.builtin.blockinfile:
     path: /etc/pleroma/config.exs
@@ -34,3 +34,47 @@
       config :pleroma, Pleroma.Captcha,
         enabled: false
 
+      config :pleroma, :instance,
+        description: "{{ pleroma_description | default(pleroma_domain_name) }}",
+        short_description: "",
+        background_image: "",
+        invites_enabled: true,
+        account_activation_required: false,
+        account_approval_required: false,
+        federating: true,
+        allow_relay: true,
+        public: true,
+        allowed_post_formats: [
+          "text/plain",
+          "text/html",
+          "text/markdown",
+          "text/bbcode"
+        ],
+        autofollowed_nicknames: [],
+        autofollowing_nicknames: [],
+        healthcheck: false,
+        external_user_synchronization: true,
+        extended_nickname_format: true,
+        cleanup_attachments: false,
+        show_reactions: true,
+        profile_directory: true,
+        admin_privileges: [
+          :users_read,
+          :users_manage_invites,
+          :users_manage_activation_state,
+          :users_manage_tags,
+          :users_manage_credentials,
+          :users_delete,
+          :messages_read,
+          :messages_delete,
+          :instances_delete,
+          :reports_manage_reports,
+          :moderation_log_read,
+          :announcements_manage_announcements,
+          :emoji_manage_emoji,
+          :statistics_read
+        ],
+        moderator_privileges: [:messages_delete, :reports_manage_reports],
+        max_endorsed_users: 20,
+        birthday_required: false,
+        birthday_min_age: 0

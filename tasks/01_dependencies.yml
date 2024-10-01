@@ -21,6 +21,7 @@
     - "{{ pleroma_uploads_path }}"
     - "{{ pleroma_static_path }}"
     - /etc/pleroma
+    - /etc/mastodon
 
 - name: Update apt cache
   become: true

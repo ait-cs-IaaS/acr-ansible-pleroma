@@ -1,0 +1,24 @@
+[Unit]
+Description=Mastobot server
+After=network.target
+
+[Service]
+Type=notify
+User=root
+RuntimeDirectory=/opt/mastobot/
+WorkingDirectory=/opt/mastobot/
+Environment="MASTOBOT_SERVER=true"
+
+{% if ssl_cert is defined and ssl_key is defined %}
+ExecStart=gunicorn mastobot:app --bind 0.0.0.0:5000 --keyfile {{ ssl_key }} --certfile {{ ssl_cert }}
+{% else %}
+ExecStart=gunicorn mastobot:app --bind 0.0.0.0:5000
+{% endif %}
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+
+
+[Install]
+WantedBy=multi-user.target

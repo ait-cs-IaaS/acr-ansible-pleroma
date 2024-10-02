@@ -4,79 +4,66 @@
   become: true
   ansible.builtin.apt:
     name: 
-      - python3-mastodon
+      - python3-flask
       - python3-click
+      - python3-mastodon
+      - gunicorn
 
-- name: Create config directories
+- name: Create directories
   become: true
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
   with_items:
-    - /opt/mastodon/media/
-    - /etc/mastobot
+    - /opt/mastobot/
+    - /opt/mastobot/media/
+    - /opt/mastobot/secrets/
 
-- name: Create mastobot config
+- name: Deploy media
   become: true
   ansible.builtin.copy:
-    dest: /etc/mastobot/config.yaml
-    mode: 0644
-    content: |
-      server_name: {{ pleroma_domain_name }}
-      deploy_path: {{ pleroma_base_path }}
+    src: "{{ pleroma_media_src }}/"
+    dest: "/opt/mastobot/media/"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+    mode: 0755
+  when: pleroma_media_src is defined
 
-- name: Create mastobot Bootsrap config
+- name: Deploy mastobot server
   become: true
   ansible.builtin.copy:
-    dest: /etc/mastobot/bootstrap.yaml
-    mode: 0644
-    content: |
-      admin_user: {{ pleroma_admin_user }}
-      admin_password: {{ pleroma_admin_password }}
-      mastodon_users: {{ pleroma_users }}
-
-- name: Deploy bootstrap media
-  become: true
-  ansible.builtin.copy:
-    src: files/bootstrap_media/
-    dest: "/opt/mastodon/media/"
+    src: files/mastobot.py
+    dest: /opt/mastobot/mastobot.py
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
     mode: 0755
 
-- name: Create masto_bot directory
+- name: Copy mastobot config
   become: true
-  ansible.builtin.file:
-    path: "{{ pleroma_base_path }}/masto_bot"
-    state: directory
+  ansible.builtin.template:
+    src: templates/mastobot_config.yaml.j2
+    dest: /opt/mastobot/config.yaml
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
 
-- name: Deploy mastobot
+- name: Copying service-template to server
   become: true
-  ansible.builtin.copy:
-    dest: "{{ pleroma_base_path }}/masto_bot.py"
-    src: masto_bot.py
-    mode: 0755
+  ansible.builtin.template:
+    src: "templates/mastobot.service.j2"
+    dest: /etc/systemd/system/mastobot.service
+    mode: preserve
 
-- name: Deploy mastobot bootstrap
-  tags: ["mastobot"]
+- name: Start service mastobot
   become: true
-  ansible.builtin.copy:
-    dest: "{{ pleroma_base_path }}/masto_bot_bootstrap.py"
-    src: masto_bot_bootstrap.py
-    mode: 0755
-
-- name: Create mastobot startscript
-  become: true
-  ansible.builtin.copy:
-    dest: "/usr/bin/mastobot"
-    mode: 0755
-    content: |
-      #!/bin/bash
-      {{ pleroma_base_path }}/masto_bot.py "$@"
+  ansible.builtin.systemd:
+    name: "mastobot.service"
+    state: restarted
+    daemon_reload: true
+    enabled: true
 
 - name: Run Mastobot Bootstrap
   become: true
   ansible.builtin.shell:
-    cmd: "{{ pleroma_base_path }}/masto_bot_bootstrap.py"
-    chdir: "{{ pleroma_base_path }}"
-
+    cmd: "/opt/mastobot/mastobot.py init"

@@ -83,7 +83,7 @@
 - name: Copy config to server
   become: true
   ansible.builtin.copy:
-    src: files/config.json
+    src: files/pleroma_config.json
     dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/config.json"
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"

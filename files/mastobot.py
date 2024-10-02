@@ -130,7 +130,7 @@ def initialize_toots(mastodon, initial_toots=[]):
     if 'schedule' in initial_toot:
       schedule = datetime.datetime.now() + datetime.timedelta(minutes=initial_toot['schedule'])
 
-    toot(mastodon, toot_id="1", text=initial_toot['text'], media=media_id, scheduled_at=schedule, idempotency_key=idempotency)
+    toot(mastodon, text=initial_toot['text'], media=media_id, scheduled_at=schedule, idempotency_key=idempotency)
 
 def initialize_follows(mastodon, nicknames, follow=[]):
   for uid in follow:

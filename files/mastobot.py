@@ -40,15 +40,34 @@ def before_first_request():
     """Ensure config is loaded before the first request."""
     load_config()
     
-def toot(mastodon, text, media):
-    idempotency = hashlib.md5(mastodon.me()['id'].encode('utf-8') + text.encode('utf-8')).hexdigest()
+def toot(mastodon, text="", media="", scheduled_at=None, idempotency_key=None, in_reply_to_id=None):
+    
+    if not idempotency_key:
+        idempotency_key = hashlib.md5(mastodon.me()['id'].encode('utf-8') + text.encode('utf-8')).hexdigest() + "00"
+
     media_id = None
     media_path = f"{MEDIAPATH}/{media}"
-
     if media != "" and os.path.isfile(media_path):
         media_id = mastodon.media_post(media_file=media_path)
+    
+    return mastodon.status_post(
+       text, 
+       media_ids=media_id,
+       scheduled_at=scheduled_at, 
+       idempotency_key=idempotency_key, 
+       in_reply_to_id=in_reply_to_id
+    )
 
-    return mastodon.status_post(text, media_ids=media_id, idempotency_key=idempotency)
+def find_post_by_content(unique_substring):   
+    admin_mastodon = login_user( ADMIN.get('user'), ADMIN.get('password'))
+    all_statuses = admin_mastodon._Mastodon__api_request('GET', '/api/v1/timelines/public')
+    status_ids = [status['id'] for status in all_statuses if unique_substring in status['content']]
+    return status_ids[0] or None
+
+def reply_to_toot( username, password = None, reply_text = None, search_string = None, media=None):
+    status_id = find_post_by_content(search_string)
+    reply_mastodon = login_user(username, password=password)
+    return toot(reply_mastodon, text=reply_text, in_reply_to_id=status_id, media=media)
 
 def create_app(username, secret_file, scopes=DEFAULT_SCOPES):
     Mastodon.create_app(
@@ -103,15 +122,15 @@ def register_user(username, email, password):
 
 
 def initialize_toots(mastodon, initial_toots=[]):
-  for toot in initial_toots:
-    idempotency = hashlib.md5(mastodon.me()['id'].encode('utf-8') + toot['text'].encode('utf-8')).hexdigest()
+  for initial_toot in initial_toots:
+    idempotency = hashlib.md5(mastodon.me()['id'].encode('utf-8') + initial_toot['text'].encode('utf-8')).hexdigest()
     media_id, schedule = None, None
-    if 'media' in toot and os.path.isfile(f"{MEDIAPATH}/{toot['media']}"):
-      media_id = mastodon.media_post(media_file=f"{MEDIAPATH}/{toot['media']}")
-    if 'schedule' in toot:
-      schedule = datetime.datetime.now() + datetime.timedelta(minutes=toot['schedule'])
+    if 'media' in initial_toot and os.path.isfile(f"{MEDIAPATH}/{initial_toot['media']}"):
+      media_id = mastodon.media_post(media_file=f"{MEDIAPATH}/{initial_toot['media']}")
+    if 'schedule' in initial_toot:
+      schedule = datetime.datetime.now() + datetime.timedelta(minutes=initial_toot['schedule'])
 
-    mastodon.status_post(toot['text'], media_ids=media_id, scheduled_at=schedule, idempotency_key=idempotency)
+    toot(mastodon, toot_id="1", text=initial_toot['text'], media=media_id, scheduled_at=schedule, idempotency_key=idempotency)
 
 def initialize_follows(mastodon, nicknames, follow=[]):
   for uid in follow:
@@ -216,14 +235,41 @@ def post_toot():
         # Get JSON data from the request
         data = request.json
 
-        user = data.get('user')
+        username = data.get('username')
         password = data.get('password', "")
         text = data.get('text')
         media = data.get('media', "")
 
         # Login and toot
-        mastodon = login_user(user, password)
+        mastodon = login_user(username, password)
         toot_response = toot(mastodon, text, media)
+        
+        return jsonify({"success": True, "toot_url": toot_response.url}), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/reply', methods=['POST'])
+def post_reply():
+    try:
+        # Get JSON data from the request
+        data = request.json
+
+        post_identifier = data.get('post_identifier')
+        username = data.get('username')
+        password = data.get('password', "")
+        text = data.get('text')
+        media = data.get('media', "")
+
+        
+        toot_response = reply_to_toot(
+           username, 
+           password = password, 
+           reply_text = text, 
+           search_string = post_identifier, 
+           media=media
+        )
         
         return jsonify({"success": True, "toot_url": toot_response.url}), 200
 
@@ -246,7 +292,7 @@ def server():
 def init():
     """Initialize the bot."""
     init_function()
-
+    
 @cli.command()
 def reset():
     """Reset the bot configuration."""

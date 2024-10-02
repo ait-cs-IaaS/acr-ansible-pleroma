@@ -88,19 +88,3 @@
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
   notify: Restart Pleroma
-
-- name: Create toots directory
-  become: true
-  ansible.builtin.file:
-    path: "{{ pleroma_base_path }}/toots"
-    state: directory
-    owner: "{{ pleroma_user }}"
-    group: "{{ pleroma_user }}"
-
-- name: Deploy toot template
-  become: true
-  ansible.builtin.template:
-    dest: "{{ pleroma_base_path }}/toots/{{ item.toot_id }}"
-    src: toot_template.sh.j2
-    mode: 0755
-  with_items: "{{ pleroma_prepared_toots }}"

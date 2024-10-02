@@ -6,7 +6,7 @@ pleroma_user: pleroma
 pleroma_base_path: /opt/pleroma
 pleroma_static_path: /var/lib/pleroma/static
 pleroma_uploads_path: /var/lib/pleroma/uploads
-pleroma_media_src: files/bootstrap_media/
+# pleroma_media_src:
 
 pleroma_libssl_deb_url: http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
 

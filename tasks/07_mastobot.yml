@@ -63,6 +63,16 @@
     daemon_reload: true
     enabled: true
 
+- name: Start service pleroma
+  become: true
+  ansible.builtin.systemd:
+    name: pleroma
+    state: restarted
+
+- name: Wait 30 seconds for pleroma
+  ansible.builtin.wait_for:
+    timeout: 30
+
 - name: Run Mastobot Bootstrap
   become: true
   ansible.builtin.shell:

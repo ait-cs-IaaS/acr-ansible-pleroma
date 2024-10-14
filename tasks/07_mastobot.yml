@@ -1,9 +1,8 @@
 ---
-
 - name: Install dependencies
   become: true
   ansible.builtin.apt:
-    name: 
+    name:
       - python3-flask
       - python3-click
       - python3-mastodon
@@ -25,10 +24,10 @@
   become: true
   ansible.builtin.copy:
     src: "{{ pleroma_media_src }}/"
-    dest: "/opt/mastobot/media/"
+    dest: /opt/mastobot/media/
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
-    mode: 0755
+    mode: "0755"
   when: pleroma_media_src is defined
 
 - name: Deploy mastobot server
@@ -38,7 +37,7 @@
     dest: /opt/mastobot/mastobot.py
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
-    mode: 0755
+    mode: "0755"
 
 - name: Copy mastobot config
   become: true
@@ -51,14 +50,14 @@
 - name: Copying service-template to server
   become: true
   ansible.builtin.template:
-    src: "templates/mastobot.service.j2"
+    src: templates/mastobot.service.j2
     dest: /etc/systemd/system/mastobot.service
     mode: preserve
 
 - name: Start service mastobot
   become: true
   ansible.builtin.systemd:
-    name: "mastobot.service"
+    name: mastobot.service
     state: restarted
     daemon_reload: true
     enabled: true
@@ -75,5 +74,17 @@
 
 - name: Run Mastobot Bootstrap
   become: true
-  ansible.builtin.shell:
-    cmd: "/opt/mastobot/mastobot.py init"
+  ansible.builtin.command:
+    cmd: /opt/mastobot/mastobot.py init
+
+- name: Turn on autopopulate
+  ansible.builtin.uri:
+    url: https://127.0.0.1:5000/start_population
+    method: POST
+    validate_certs: false
+  register: post_answer
+  when: pleroma_autopopulate
+
+- ansible.builtin.debug:
+    msg: "{{ post_answer.json }}"
+  when: post_answer is defined

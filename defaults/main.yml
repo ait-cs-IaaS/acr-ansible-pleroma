@@ -2,11 +2,15 @@
 
 pleroma_force_install: false
 
+remote_mastodon_user: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_USER') }}"
+remote_mastodon_password: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_PASSWORD') }}"
+
 pleroma_user: pleroma
 pleroma_base_path: /opt/pleroma
 pleroma_static_path: /var/lib/pleroma/static
 pleroma_uploads_path: /var/lib/pleroma/uploads
 # pleroma_media_src:
+pleroma_autopopulate: True
 
 pleroma_libssl_deb_url: http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
 

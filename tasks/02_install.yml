@@ -1,11 +1,10 @@
 ---
-
 - name: Unzip Pleroma release
   become: true
   become_user: "{{ pleroma_user }}"
   ansible.builtin.unarchive:
-    src: "https://git.pleroma.social/api/v4/projects/2/jobs/artifacts/stable/download?job={{ lookup('pipe', 'dpkg --print-architecture') }}"
-    dest: "/tmp/"
+    src: https://git.pleroma.social/api/v4/projects/2/jobs/artifacts/stable/download?job={{ lookup('pipe', 'dpkg --print-architecture') }}
+    dest: /tmp/
     remote_src: true
 
 - name: Ensure correct path and permissions of files
@@ -20,8 +19,9 @@
 - name: Run pleroma setup
   become: true
   become_user: "{{ pleroma_user }}"
-  ansible.builtin.shell: 
-    cmd: "{ {% for response in pleroma_setup_responses %} echo \"{{ response }}\"; {% endfor %} } | ./bin/pleroma_ctl instance gen --force --output /etc/pleroma/config.exs --output-psql /tmp/setup_db.psql"
+  ansible.builtin.shell:
+    cmd: '{ {% for response in pleroma_setup_responses %} echo "{{ response }}"; {% endfor %} } | ./bin/pleroma_ctl instance gen --force --output /etc/pleroma/config.exs
+      --output-psql /tmp/setup_db.psql'
   args:
     chdir: "{{ pleroma_base_path }}"
   register: setup_log

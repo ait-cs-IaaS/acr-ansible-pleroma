@@ -1,5 +1,4 @@
 ---
-
 - name: Create Pleroma user
   become: true
   ansible.builtin.user:
@@ -28,6 +27,9 @@
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 3600
+
+- ansible.builtin.debug:
+    msg: "Installing dependencies ... [be patient]"
 
 - name: Install required packages
   become: true

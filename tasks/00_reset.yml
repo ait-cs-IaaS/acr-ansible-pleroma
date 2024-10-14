@@ -1,5 +1,4 @@
 ---
-
 - name: Remove postgresql
   become: true
   ansible.builtin.apt:

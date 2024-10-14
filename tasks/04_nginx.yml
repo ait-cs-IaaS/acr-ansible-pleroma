@@ -1,5 +1,4 @@
 ---
-
 - name: Install nginx
   become: true
   ansible.builtin.apt:
@@ -12,7 +11,7 @@
     dest: /etc/nginx/sites-available/pleroma
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
-    mode: '0644'
+    mode: "0644"
 
 - name: Ensure nginx default config is absent
   become: true

@@ -32,9 +32,8 @@ app = Flask(__name__)
 # #################################################
 
 class RepeatedTask:
-    def __init__(self, target_function, remote_mastodon, loop_size=86400, limit=1):
+    def __init__(self, target_function, remote_mastodon, limit=1):
         self.target_function = target_function
-        self.loop_size = loop_size
         self.limit = limit
         self.remote_mastodon = remote_mastodon
         self.stop_event = threading.Event()
@@ -55,7 +54,8 @@ class RepeatedTask:
 
     def _run(self):
         """Execute the task repeatedly with variating sleep times."""
-        for x in range(self.loop_size):
+        x = 0
+        while True:
             if self.stop_event.is_set():
                 break  # Exit if stop is triggered
 
@@ -65,6 +65,9 @@ class RepeatedTask:
             # Calculate sleep time based on your formula
             sleep_time = 10 + ((1234 + (x % 40) ** 3) % 71)
             time.sleep(sleep_time)
+
+            # Increment x
+            x += 1
 
 # #################################################
 # Download avatar from remote mastodon

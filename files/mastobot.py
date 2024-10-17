@@ -214,7 +214,7 @@ def get_posts_from_remote_mastodon(remote_mastodon = None, limit=15):
             else:
                 print(f"*** trying to register as { username }***")
                 avatar_path = post.get('account').get('avatar')
-                mastodon = register_user(username=username, email=email, password=HARD_CODED_PASSWORD, avatar_path=post.get('account').get('avatar'))
+                mastodon = register_user(username=username, email=email, password=HARD_CODED_PASSWORD, avatar_path=avatar_path)
 
             if toot(mastodon, text=content):
                 break
@@ -314,7 +314,7 @@ def register_user(username, email, password, gender = "all", avatar_path = None)
     secret_file = f"{SECRETPATH}/{username}"
 
     if os.path.isfile(secret_file):
-        return login_user(username, email, password)
+        return login_user(username, password)
 
     mastodon = create_app(username, secret_file)
     mastodon.create_account(

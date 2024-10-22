@@ -42,6 +42,8 @@ pleroma_domain_name: mastodon.cyberrange.at
 pleroma_notify_email: "{{ pleroma_admin_email }}"
 pleroma_secret_key: s3cr37KeyB45e
 
+pleroma_support_email: "{{ pleroma_admin_email }}"
+
 pleroma_setup_responses:
   # What domain will your instance use? (e.g pleroma.soykaf.com)
   - "{{ pleroma_domain_name }}"

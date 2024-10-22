@@ -31,6 +31,15 @@
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
 
+- name: Add custom about page
+  become: true
+  ansible.builtin.template:
+    src: templates/terms-of-service.html.j2
+    dest: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/terms-of-service.html"
+    owner: "{{ pleroma_user }}"
+    group: "{{ pleroma_user }}"
+    mode: "0644"
+
 - name: Copy logo to server
   become: true
   ansible.builtin.copy:
@@ -88,3 +97,23 @@
     owner: "{{ pleroma_user }}"
     group: "{{ pleroma_user }}"
   notify: Restart Pleroma
+
+- name: Find the CSS file
+  become: true
+  ansible.builtin.shell:
+    cmd: ls | grep app.*.css -m1
+  args:
+    chdir: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/css/"
+  register: css_file
+
+- name: Insert custom CSS line into the found CSS file
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ pleroma_base_path }}/lib/{{ pleroma_folder_name.stdout }}/priv/static/static/css/{{ css_file.stdout }}"
+    line: "{{ item }}"
+    insertafter: EOF
+  when: css_file.rc == 0
+  with_items:
+    - ".features-panel, .staff-panel, .mrf-transparency-panel, .site-name, .user-panel .login .panel-heading { display: none !important; }"
+    - "#content .panel .input { margin-top: 4px; border: 1px solid #ffffff !important; }"
+    - ".login-form label { color: #ffffff !important; }"

@@ -300,13 +300,14 @@ def login_user(username, password = None, scopes = DEFAULT_SCOPES, api_url = Non
             if default_user.get('login') == username:
                 password = default_user.get('password')
                 break
-
+    
     mastodon.log_in(
         username=username,
         password=password,
         to_file=secret_file,
         scopes=scopes
     )
+
     return mastodon
 
 
@@ -434,24 +435,92 @@ def stop_population():
 # Flask route to handle posting
 @app.route('/post', methods=['POST'])
 def post_toot():
+    
+    #
+    # WORKING EXAMPLE
+    # ---------------------------------------------- 
+    # curl -X POST https://why.social:5000/post -H 'Content-Type: application/json' -d '{"username":"EUCSA","password":"mozart.rocks","text":"Hello World"}' -k
+    # ---------------------------------------------- 
+    #
+
     try:
         # Get JSON data from the request
         data = request.json
 
         username = data.get('username')
-        password = data.get('password', "")
+        password = data.get('password', None)
         text = data.get('text')
         media = data.get('media', "")
 
-        # Login and toot
         mastodon = login_user(username, password)
-        toot_response = toot(mastodon, text, media)
+
+        toot_response = toot(mastodon, text, media=media)
         
-        return jsonify({"success": True, "toot_url": toot_response.url}), 200
+        return jsonify({"success": toot_response}), 200
 
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+@app.route('/change_password/<username>', methods=['POST'])
+def change_password(username):
+    
+    #
+    # WORKING EXAMPLE
+    # ---------------------------------------------- 
+    # curl -X POST https://why.social:5000/change_password/VaxxiStop38 -H 'Content-Type: application/json' -d '{"current_password":"mozart.rocks123","new_password":"mozart.rocks12"}' -k
+    # ---------------------------------------------- 
+    #
+
+    data = request.json
+    current_password = data.get('current_password', "")
+    new_password = data.get('new_password', "")
+
+    token_url = f"https://localhost/oauth/token"
+    client_id = "NREiAU1KTvHOUuI5YaoqfNItsabF1b9TrnD6eWMXbYk"
+    client_secret = "wHF1LIlW2IBSvymT2wCM-6zXWk5LmmrLDE7TP-sKxNM"
+
+    data = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'grant_type': 'password',
+        'username': username,
+        'password': current_password
+    }
+
+    response = requests.post(token_url, data=data, verify=False)
+    
+    if response.status_code != 200:
+        return jsonify({"error": "Unable to obtain access token", "details": response.json()}), 400
+    
+    access_token = response.json().get("access_token")
+    if not access_token:
+        return jsonify({"error": "No access token found"}), 400
+    
+    change_password_url = f"https://localhost/api/pleroma/change_password"
+
+    data = {
+        'password': current_password,
+        'new_password': new_password,
+        'new_password_confirmation': new_password
+    }
+
+    response = requests.post(change_password_url, data=data, headers={'Authorization': f'Bearer {access_token}' }, verify=False)
+        
+    if response.status_code == 200:
+        # Read current secret file
+        secret_file = f"{SECRETPATH}/{username}"
+        with open(secret_file, 'r') as file:
+            lines = file.readlines()
+        
+        # Update secret file
+        lines[0] = access_token + '\n'
+        with open(secret_file, 'w') as file:
+            file.writelines(lines)
+
+        return jsonify({"message": "Password changed successfully"}), 200
+    else:
+        return jsonify({"error": "Unable to change password", "details": response.json()}), 400
 
 @app.route('/reply', methods=['POST'])
 def post_reply():
@@ -463,7 +532,6 @@ def post_reply():
         password = data.get('password', "")
         text = data.get('text')
         media = data.get('media', "")
-
         
         toot_response = reply_to_toot(
            username, 
@@ -473,7 +541,7 @@ def post_reply():
            media=media
         )
         
-        return jsonify({"success": True, "toot_url": toot_response.url}), 200
+        return jsonify({"success": toot_response }), 200
 
     except Exception as e:
         traceback.print_exc()

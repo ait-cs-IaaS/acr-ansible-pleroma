@@ -524,6 +524,14 @@ def change_password(username):
 
 @app.route('/reply', methods=['POST'])
 def post_reply():
+    
+    #
+    # WORKING EXAMPLE
+    # ---------------------------------------------- 
+    # curl -X POST https://why.social:5000/reply -H 'Content-Type: application/json' -d '{"post_identifier":"#PID001", "username":"EUCSA","password":"mozart.rocks","text":"Hello World", "media": "image.png"}' -k
+    # ---------------------------------------------- 
+    #
+
     try:
         data = request.json
 

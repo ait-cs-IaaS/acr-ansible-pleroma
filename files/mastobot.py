@@ -101,10 +101,11 @@ def generate_avatar(username, gender="all"):
             image_response = requests.get(image_url)
             
             if image_response.status_code == 200:
-                avatar_path = os.path.join(MEDIAPATH, f"{username}.png")
+                avatar_path = os.path.join(MEDIAPATH, f"{username}.jpg")
                 with open(avatar_path, 'wb') as f:
                     f.write(image_response.content)
                 print(f"Image downloaded and saved as: {avatar_path}")
+                return avatar_path
             else:
                 print(f"Failed to download image: {image_response.status_code}")
     else:
@@ -117,9 +118,9 @@ def generate_avatar(username, gender="all"):
 
 def create_avatar(username = "", avatar_path = None, gender = "all"):
     if not avatar_path:
-        generate_avatar(username, gender=gender)
+        return generate_avatar(username, gender=gender)
     elif avatar_path.startswith('http'):
-        download_avatar(avatar_path, username)
+        return download_avatar(avatar_path, username)
     else:
         pass
 
@@ -326,7 +327,11 @@ def register_user(username, email, password, gender = "all", avatar_path = None)
         to_file=secret_file
     )
     
-    create_avatar( username = username, avatar_path = avatar_path, gender = gender)
+    if os.path.isfile(avatar_path):
+        create_avatar( username = username, avatar_path = avatar_path, gender = gender)
+    else:
+        avatar_path = create_avatar( username = username, avatar_path = None, gender = gender)
+
     local_avatar_path = avatar_path
     if avatar_path.startswith('http'):
         local_avatar_path = f"{ MEDIAPATH }/{ username }.png"
@@ -366,7 +371,8 @@ def init_function():
                     username=user.get('login'),
                     email=user.get('email'),
                     password=user.get('password', None),
-                    avatar_path=avatar_path
+                    avatar_path=avatar_path,
+                    gender=user.get('gender', 'all'),
                 )
 
             print(f"*** updating account for { user['login'] }***")
@@ -385,12 +391,12 @@ def init_function():
 def initialize_toots(mastodon, initial_toots=[]):
   for initial_toot in initial_toots:
     idempotency = hashlib.md5(mastodon.me()['id'].encode('utf-8') + initial_toot['text'].encode('utf-8')).hexdigest()
-    media_id, schedule = None, None
+    media, schedule = None, None
     if 'media' in initial_toot and os.path.isfile(f"{MEDIAPATH}/{initial_toot['media']}"):
-      media_id = mastodon.media_post(media_file=f"{MEDIAPATH}/{initial_toot['media']}")
+      media = initial_toot['media']
     if 'schedule' in initial_toot:
       schedule = datetime.datetime.now() + datetime.timedelta(minutes=initial_toot['schedule'])
-    toot(mastodon, text=initial_toot['text'], media=media_id, scheduled_at=schedule, idempotency_key=idempotency)
+    toot(mastodon, text=initial_toot['text'], media=media, scheduled_at=schedule, idempotency_key=idempotency)
 
 def initialize_follows(mastodon, nicknames, follow=[]):
   for uid in follow:

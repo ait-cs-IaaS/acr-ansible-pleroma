@@ -292,6 +292,15 @@ def login_user(username, password = None, scopes = DEFAULT_SCOPES, api_url = Non
     
     if api_url is None:
         api_url = API_URL
+    
+    else:
+        return Mastodon(
+            client_id="O0lIllYjPVS2SzY5YUVXpVvQGvkBCjL_HcbFY37AWYY",
+            client_secret="n0V36xE54DCTImQP4LFV5fvyxWZ8vfPcbWZaHHq2OHw",
+            access_token="Qb3sHxeXEpdMTHjeBqNKtbW4XwULFgfrA23f71SFua4",
+            api_base_url=api_url,
+            feature_set="pleroma"
+        )
 
     secret_file = f"{SECRETPATH}/{username}"
     mastodon = create_app(username, secret_file, scopes, api_url)

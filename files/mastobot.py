@@ -134,7 +134,7 @@ def before_first_request():
     load_config()
 
 def load_config():
-    global API_URL, PLEROMA_INITIAL_USERS, ADMIN, HASHTAGS, REMOTE_MASTODON_USER, REMOTE_MASTODON_PASSWORD
+    global API_URL, PLEROMA_INITIAL_USERS, ADMIN, HASHTAGS, REMOTE_MASTODON_CLIEND_ID, REMOTE_MASTODON_SECRET, REMOTE_MASTODON_ACCESS_TOKEN, REMOTE_MASTODON_BASE_URL
 
     with open("/opt/mastobot/config.yaml") as f:
         config = yaml.safe_load(f)
@@ -147,9 +147,11 @@ def load_config():
         "email": config.get('admin_email', 'admin@cyberrange.at'),
         "password": config.get('admin_password', 'adminpass')
     }
-
-    REMOTE_MASTODON_USER = config.get('remote_mastodon_user')
-    REMOTE_MASTODON_PASSWORD = config.get('remote_mastodon_password')
+    
+    REMOTE_MASTODON_CLIEND_ID = config.get('remote_mastodon_client_id')
+    REMOTE_MASTODON_SECRET = config.get('remote_mastodon_secret')
+    REMOTE_MASTODON_ACCESS_TOKEN = config.get('remote_mastodon_access_token')
+    REMOTE_MASTODON_BASE_URL = config.get('remote_mastodon_base_url')
 
     print("*** Config loaded ***")
 
@@ -161,12 +163,14 @@ def login_admin():
     )
 
 def login_remote():
-    return login_user(
-        REMOTE_MASTODON_USER, 
-        password=REMOTE_MASTODON_PASSWORD, 
-        scopes=DEFAULT_SCOPES, 
-        api_url="https://mastodon.social"
-    )
+
+    remote_mastodon = Mastodon(
+        client_id=REMOTE_MASTODON_CLIEND_ID, 
+        client_secret=REMOTE_MASTODON_SECRET, 
+        access_token=REMOTE_MASTODON_ACCESS_TOKEN, 
+        api_base_url=REMOTE_MASTODON_BASE_URL)
+    
+    return remote_mastodon
 
 def get_existing_nicknames(admin_mastodon):
     existing_users = admin_mastodon._Mastodon__api_request('GET', USERS_ENDPOINT)
@@ -292,15 +296,6 @@ def login_user(username, password = None, scopes = DEFAULT_SCOPES, api_url = Non
     
     if api_url is None:
         api_url = API_URL
-    
-    else:
-        return Mastodon(
-            client_id="O0lIllYjPVS2SzY5YUVXpVvQGvkBCjL_HcbFY37AWYY",
-            client_secret="n0V36xE54DCTImQP4LFV5fvyxWZ8vfPcbWZaHHq2OHw",
-            access_token="Qb3sHxeXEpdMTHjeBqNKtbW4XwULFgfrA23f71SFua4",
-            api_base_url=api_url,
-            feature_set="pleroma"
-        )
 
     secret_file = f"{SECRETPATH}/{username}"
     mastodon = create_app(username, secret_file, scopes, api_url)

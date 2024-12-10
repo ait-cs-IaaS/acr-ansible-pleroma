@@ -10,10 +10,18 @@ admin_email: {{ pleroma_admin_email }}
 admin_password: {{ pleroma_admin_password }}
 
 # Remote mastodon
+{% if remote_mastodon_client_id is defined %}
 remote_mastodon_client_id: {{ remote_mastodon_client_id }}
+{% endif %}
+{% if remote_mastodon_secret is defined %}
 remote_mastodon_secret: {{ remote_mastodon_secret }}
+{% endif %}
+{% if remote_mastodon_access_token is defined %}
 remote_mastodon_access_token: {{ remote_mastodon_access_token }}
+{% endif %}
+{% if remote_mastodon_base_url is defined %}
 remote_mastodon_base_url: {{ remote_mastodon_base_url }}
+{% endif %}
 {% if remote_mastodon_hashtags is defined %}
 remote_mastodon_hashtags: {{ remote_mastodon_hashtags }}
 {% endif %}

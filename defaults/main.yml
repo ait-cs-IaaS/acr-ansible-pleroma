@@ -2,8 +2,11 @@
 
 pleroma_force_install: false
 
-remote_mastodon_user: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_USER') }}"
-remote_mastodon_password: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_PASSWORD') }}"
+remote_mastodon_client_id: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_CLIENT_ID') }}"
+remote_mastodon_secret: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_SECRET') }}"
+remote_mastodon_access_token: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_ACCESS_TOKEN') }}"
+remote_mastodon_base_url: "{{ lookup('ansible.builtin.env', 'REMOTE_MASTODON_BASE_URL') }}"
+remote_mastodon_hashtags: []
 
 pleroma_user: pleroma
 pleroma_base_path: /opt/pleroma

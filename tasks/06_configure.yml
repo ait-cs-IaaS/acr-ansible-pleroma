@@ -117,3 +117,6 @@
     - ".features-panel, .staff-panel, .mrf-transparency-panel, .site-name, .user-panel .login .panel-heading { display: none !important; }"
     - "#content .panel .input { margin-top: 4px; border: 1px solid #ffffff !important; }"
     - ".login-form label { color: #ffffff !important; }"
+
+- name: Run all handlers
+  meta: flush_handlers

@@ -15,7 +15,7 @@ pleroma_uploads_path: /var/lib/pleroma/uploads
 # pleroma_media_src:
 pleroma_autopopulate: True
 
-pleroma_libssl_deb_url: http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
+pleroma_libssl_deb_url: http://launchpadlibrarian.net/475574732/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
 pleroma_dependencies:
   - build-essential
